@@ -18,12 +18,16 @@ public:
     bool hasFlag = false;
     bool revealed = false;
     bool floodChecked = false;
+    bool disabled = false;
 
     //data
     int adjNum = 0;
     int coords[2] = {};
 
     //functions
+    void revealTile();
+    void updateText();
+    void putFlag();
 
 signals:
     void rightClicked();

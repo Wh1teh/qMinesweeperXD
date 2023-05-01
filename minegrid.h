@@ -32,18 +32,21 @@ public:
 
     //functions
     void createGrid(int gridSize, int minesAmount);
+    void freezeButtons();
 
 
 private:
     Ui::MineGrid *ui;
 
 signals:
+    void gameStarted();
     void gridUpdated(int flagsAmount);
     void victory();
     void defeat();
 
 public slots:
     void revealRandomMine();
+    void revealOneTile();
 
 private slots:
     void buttonClicked();
@@ -51,7 +54,7 @@ private slots:
 
 private:
     //flags
-    bool firstReveal = false;
+    //bool firstReveal = false;
     int tilesRevealed = 0;
     int flagsAmount = 0;
 
@@ -61,8 +64,6 @@ private:
     void putMines(int x, int y);
     void putAdjNums();
     void createButtons();
-
-    void reposMine(Tile* tile);
 
     void revealTile(int x, int y);
     void floodFill(int x, int y);

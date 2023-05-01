@@ -9,6 +9,7 @@
 #include <QScreen>
 #include <QTimer>
 #include <QThread>
+#include <QTime>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -32,6 +33,7 @@ private slots:
     void defeat();
 
     void mineFluff();
+    void updateClock();
 
     //generated
     void on_bxSizes_editTextChanged(const QString &arg1);
@@ -43,9 +45,22 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    //pointers
     MineGrid * mineGrid = nullptr;
     QBoxLayout * gridWrapper = nullptr;
 
     QTimer * smallDelay;
+    QTimer * timer;
+
+    //states
+    enum Status {
+        Idle,
+        Running,
+        Defeat,
+        Victory
+    }status = Idle;
+
+    //variables
+    int centiseconds = 0;
 };
 #endif // MAINWINDOW_H

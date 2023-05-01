@@ -9,6 +9,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     smallDelay = new QTimer(this);
 
+    timer = new QTimer(this);
+
+    connect(timer, SIGNAL(timeout()),
+            this, SLOT(updateClock()));
+
     //initGrid();
 
     qDebug() << Q_FUNC_INFO;
@@ -55,17 +60,23 @@ void MainWindow::updateCounters(int flagsAmount)
 
 void MainWindow::victory()
 {
+    qDebug() << Q_FUNC_INFO;
 
+    status = Victory;
+
+    mineGrid->freezeButtons();
 }
 
 void MainWindow::defeat()
 {
     qDebug() << Q_FUNC_INFO;
 
+    status = Defeat;
+
+    mineGrid->freezeButtons();
+
     smallDelay->start(1000);
 
-//    connect(smallDelay, SIGNAL(timeout()),
-//            mineGrid, SLOT(revealRandomMine()));
     connect(smallDelay, SIGNAL(timeout()),
             this, SLOT(mineFluff()));
 }
@@ -103,6 +114,62 @@ void MainWindow::mineFluff()
     mineGrid->revealRandomMine();
 }
 
+void MainWindow::updateClock()
+{
+    if(status == Defeat)
+    {
+        timer->stop();
+        return;
+    }
+
+    if(status == Victory)
+    {
+        static int i = 0;
+        timer->start(100 / (mineGrid->gridSize));
+
+        mineGrid->revealOneTile();
+
+        i++;
+        if(i > mineGrid->gridSize * mineGrid->gridSize)
+        {
+            timer->stop();
+            i = 0;
+
+            status = Idle;
+        }
+
+        return;
+    }
+
+    if(status == Idle)
+    {
+        status = Running;
+
+        qDebug() << Q_FUNC_INFO << "start timer" << QObject::sender();
+        timer->start(10);
+    }
+    centiseconds++;
+
+    if(centiseconds > 999999)
+    {
+        timer->stop();
+        return;
+    }
+
+    QString time;
+    QString seconds = QString::number(centiseconds / 100);
+    for (int i = 0; i < 4 - seconds.length(); ++i) {
+        time.append("0");
+    }
+    time.append(seconds + ":");
+
+    if(QString::number(centiseconds % 100).length() < 2)
+        time.append("0");
+    time.append(QString::number(centiseconds % 100));
+
+    ui->lbTime->setText(time);
+}
+
 void MainWindow::initGrid()
 {
     qDebug() << Q_FUNC_INFO;
@@ -130,6 +197,8 @@ void MainWindow::initGrid()
     mineGrid->show();
 
     //connections to grid
+    connect(mineGrid, SIGNAL(gameStarted()),
+            this, SLOT(updateClock()));
     connect(mineGrid, SIGNAL(gridUpdated(int)),
             this, SLOT(updateCounters(int)));
     connect(mineGrid, SIGNAL(victory()),

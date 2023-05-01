@@ -17,25 +17,24 @@ void MineGrid::createGrid(int gridSize, int minesAmount)
 {
     qDebug() << Q_FUNC_INFO << "start";
 
-    firstReveal = true;
-
     this->gridSize = gridSize;
     this->minesAmount = minesAmount;
 
-    //delete previous grid, maybe useless
-    for (int i = 0; i < tiles.count(); ++i) {
-        if(i == 0) qDebug() << Q_FUNC_INFO << "deleting previous, tiles.count:" << tiles.count();
-        for (int j = 0; j < tiles[i].count(); ++j) {
-            delete tiles[i][j];
-            tiles[i][j] = nullptr;
-        }
-        tiles[i].clear();
-    }
-    tiles.clear();
+    //tiles.clear();
 
     createButtons();
 
     qDebug() << Q_FUNC_INFO << "end";
+}
+
+void MineGrid::freezeButtons()
+{
+    qDebug() << Q_FUNC_INFO;
+    for (int i = 0; i < gridSize; ++i) {
+        for (int j = 0; j < gridSize; ++j) {
+            tiles[i][j]->disabled = true;
+        }
+    }
 }
 
 void MineGrid::revealRandomMine()
@@ -57,9 +56,33 @@ void MineGrid::revealRandomMine()
     }
 }
 
+void MineGrid::revealOneTile()
+{
+    static int i = 0;
+    static int j = 0;
+
+    if(i >= gridSize)
+    {
+        i = 0;
+        return;
+    }
+
+    tiles[i][j]->setFlat(false);
+    tiles[i][j]->setStyleSheet("background-color: #0F0; color: #0F0");
+
+    j++;
+    if(j >= gridSize)
+    {
+        j = 0;
+        i++;
+    }
+}
+
 void MineGrid::buttonClicked()
 {
     qDebug() << Q_FUNC_INFO << QObject::sender();
+
+    emit gameStarted();
 
     for (int i = 0; i < tiles.count(); ++i) {
         if(tiles[i].contains(QObject::sender()))
@@ -83,20 +106,18 @@ void MineGrid::buttonRightClicked()
     if(tile->revealed)
         return;
 
-    tile->setStyleSheet("color: #F00");
-
     if(tile->hasFlag)
     {
-        tile->setText("");
         tile->hasFlag = false;
         flagsAmount--;
     }
     else
     {
-        tile->setText("F");
         tile->hasFlag = true;
         flagsAmount++;
     }
+
+    tile->updateText();
 
     emit gridUpdated(flagsAmount);
 }
@@ -154,7 +175,6 @@ void MineGrid::putMines(int x, int y)
     debugGrid();
 
     qDebug() << Q_FUNC_INFO << "end";
-    //createButtons();
 }
 
 void MineGrid::putAdjNums()
@@ -227,50 +247,13 @@ void MineGrid::createButtons()
     qDebug() << Q_FUNC_INFO << "end";
 }
 
-void MineGrid::reposMine(Tile* tile)
-{
-    qDebug() << Q_FUNC_INFO << "start";
-
-    int ranX = 0;
-    int ranY = 0;
-    bool minePlaced = false;
-    while(!minePlaced)
-    {
-        ranX = QRandomGenerator::global()->bounded(gridSize);
-        ranY = QRandomGenerator::global()->bounded(gridSize);
-
-        //check that tile doesn't have a mine already and isn't current pos
-        if(!tiles[ranY][ranX]->hasMine)
-        {
-            tiles[ranY][ranX]->hasMine = true;
-            minePlaced = true;
-        }
-    }
-
-    //remove mine from current tile
-    tile->hasMine = false;
-
-    //debug
-    debugGrid();
-
-    qDebug() << Q_FUNC_INFO << "end";
-}
-
 void MineGrid::revealTile(int x, int y)
 {
-    QPushButton * btn = tiles[y][x];
     Tile * tile = tiles[y][x];
 
     //prevent first click from triggering mine and init adjNums
-    if(firstReveal)
+    if(tilesRevealed == 0)
     {
-        if(tile->hasMine)
-        {
-            reposMine(tile);
-        }
-
-        firstReveal = false;
-
         putMines(x, y);
 
         putAdjNums();
@@ -280,10 +263,7 @@ void MineGrid::revealTile(int x, int y)
     {
         qDebug() << Q_FUNC_INFO << "mine!";
 
-        tile->revealed = true;
-
-        btn->setStyleSheet("background-color: #F00; color: #000;");
-        btn->setText("X");
+        tile->revealTile();
 
         emit defeat();
         return;
@@ -291,17 +271,12 @@ void MineGrid::revealTile(int x, int y)
 
     if(!tile->revealed)
     {
-        tile->revealed = true;
+        tile->revealTile();
         tilesRevealed++;
         qDebug() << Q_FUNC_INFO << "tilesRevealed:" << tilesRevealed;
 
         floodFill(x, y);
     }
-
-    btn->setFlat(true);
-    btn->setStyleSheet("background-color: #eee; color: #000");
-    if(tile->adjNum > 0)
-        btn->setText(QString::number(tile->adjNum));
 
     //game is won
     if(tilesRevealed + minesAmount == gridSize * gridSize)
@@ -326,10 +301,11 @@ void MineGrid::floodFill(int x, int y)
                         //prevent invalid index
                         if(j < 0 || j >= gridSize) continue;
 
+                        //skip mines and already revealed
                         if(tiles[i][j]->hasMine) continue;
-                        //if(tiles[i][j]->adjNum > 0) continue;
                         if(tiles[i][j]->revealed) continue;
 
+                        //proceed
                         tiles[y][x]->floodChecked = true;
                         revealTile(j, i);
                     }
