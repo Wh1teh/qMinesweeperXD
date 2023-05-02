@@ -261,6 +261,12 @@ void MineGrid::revealTile(int x, int y)
 {
     Tile * tile = tiles[y][x];
 
+    if(tile->hasFlag)
+    {
+        flagsAmount--;
+        emit gridUpdated(flagsAmount);
+    }
+
     //prevent first click from triggering mine and init adjNums
     if(tilesRevealed == 0)
     {

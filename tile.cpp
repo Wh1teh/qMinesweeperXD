@@ -111,4 +111,9 @@ void Tile::updateText()
 
     if(adjNum > 0)
         setText(QString::number(adjNum));
+
+    if(hasFlag)
+    {
+        hasFlag = false;
+    }
 }

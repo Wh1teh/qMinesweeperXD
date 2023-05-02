@@ -250,6 +250,7 @@ void MainWindow::initGrid()
 
     //update ui
     updateCounters(0);
+    ui->lbTime->setText("0000:00");
 
     //reset timers
     timer->stop();
