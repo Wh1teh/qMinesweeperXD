@@ -48,15 +48,15 @@ void MineGrid::revealRandomMine()
         {
             mines[i]->revealed = true;
 
-            mines[i]->setStyleSheet("background-color: #F00; color: #000;");
-            mines[i]->setText("X");
+            mines[i]->setStyleSheet("background-color: #F40; color: #000;");
+            mines[i]->setText("💣");
 
             break;
         }
     }
 }
 
-void MineGrid::revealOneTile()
+void MineGrid::revealOneGreenTile()
 {
     static int i = 0;
     static int j = 0;
@@ -68,7 +68,14 @@ void MineGrid::revealOneTile()
     }
 
     tiles[i][j]->setFlat(false);
-    tiles[i][j]->setStyleSheet("background-color: #0F0; color: #0F0");
+    if(tiles[i][j]->revealed)
+    {
+        tiles[i][j]->setStyleSheet("background-color: #AFA; color: #AFA");
+    }
+    else
+    {
+        tiles[i][j]->setStyleSheet("background-color: #0F0; color: #0F0");
+    }
 
     j++;
     if(j >= gridSize)
@@ -226,6 +233,9 @@ void MineGrid::createButtons()
 
             connect(row[j], SIGNAL(clicked()),
                     this, SLOT(buttonClicked()));
+
+            connect(row[j], SIGNAL(skipToEnd()),
+                    this, SIGNAL(skipToEnd()));
         }
         tiles.append(row);
 

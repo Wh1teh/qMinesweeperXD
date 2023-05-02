@@ -11,7 +11,10 @@ void Tile::mousePressEvent(QMouseEvent *e)
     qDebug() << Q_FUNC_INFO << "disabled:" << disabled;
 
     if(disabled == true)
+    {
+        emit skipToEnd();
         return;
+    }
 
     if(e->isInputEvent())
     {
@@ -47,7 +50,7 @@ void Tile::updateText()
 
         if(hasFlag)
         {
-            setText("F");
+            setText("🚩");
         }
 
         return;
@@ -56,7 +59,7 @@ void Tile::updateText()
     if(hasMine)
     {
         setStyleSheet("background-color: #F00; color: #000;");
-        setText("X");
+        setText("💣");
 
         return;
     }

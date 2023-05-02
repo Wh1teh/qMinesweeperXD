@@ -44,9 +44,11 @@ signals:
     void victory();
     void defeat();
 
+    void skipToEnd();
+
 public slots:
     void revealRandomMine();
-    void revealOneTile();
+    void revealOneGreenTile();
 
 private slots:
     void buttonClicked();

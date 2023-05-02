@@ -14,27 +14,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(timer, SIGNAL(timeout()),
             this, SLOT(updateClock()));
 
-    //initGrid();
-
     qDebug() << Q_FUNC_INFO;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-
-void MainWindow::on_bxSizes_editTextChanged(const QString &arg1)
-{
-    qDebug() << Q_FUNC_INFO;
-
-    //get size (of one side) from combo box
-    int gridSize = (arg1.split("x")[0].toInt());
-    int totalSize = gridSize * gridSize;
-
-    //update mines to 20% of grid size
-    ui->leMines->setText(QString::number((float)totalSize * 0.2));
 }
 
 void MainWindow::on_bxSizes_currentIndexChanged(int index)
@@ -53,6 +38,31 @@ void MainWindow::on_bxSizes_currentIndexChanged(int index)
     initGrid();
 }
 
+void MainWindow::on_leMines_textEdited(const QString &arg1)
+{
+    int minesAmount = arg1.toInt();
+
+    //get size (of one side) from combo box
+    int gridSize = ui->bxSizes->currentText().split("x")[0].toInt();
+    int totalSize = gridSize * gridSize;
+
+    //0 is either non number/empty or otherwise dumb, negative numbers are invalid
+    if(minesAmount <= 0)
+    {
+        return;
+    }
+
+    //too many mines will crash the game
+    if(minesAmount + 9 > totalSize)
+    {
+        minesAmount = totalSize - 10;
+    }
+
+    ui->leMines->setText(QString::number(minesAmount));
+
+    initGrid();
+}
+
 void MainWindow::updateCounters(int flagsAmount)
 {
     ui->lbFlags->setText(QString::number(mineGrid->minesAmount - flagsAmount));
@@ -64,6 +74,8 @@ void MainWindow::victory()
 
     status = Victory;
 
+    disableButtons();
+
     mineGrid->freezeButtons();
 }
 
@@ -73,6 +85,8 @@ void MainWindow::defeat()
 
     status = Defeat;
 
+    disableButtons();
+
     mineGrid->freezeButtons();
 
     smallDelay->start(1000);
@@ -81,9 +95,24 @@ void MainWindow::defeat()
             this, SLOT(mineFluff()));
 }
 
+void MainWindow::skipEndSequence()
+{
+    qDebug() << Q_FUNC_INFO;
+
+    delay = 0.0;
+    smallDelay->start(0);
+    timer->start(0);
+
+    if(ui->bxSizes->isEnabled())
+    {
+        delay = 1000.0;
+        initGrid();
+    }
+}
+
 void MainWindow::mineFluff()
 {
-    static float delay = 500.0;
+    //static float delay = 500.0;
     //int count = mineGrid->minesAmount - 1;
     mineGrid->minesAmount--;
 
@@ -91,6 +120,8 @@ void MainWindow::mineFluff()
 
     if(mineGrid->minesAmount <= 0)
     {
+        enableButtons();
+
         smallDelay->stop();
         delay = 1000.0;
 
@@ -125,13 +156,14 @@ void MainWindow::updateClock()
     if(status == Victory)
     {
         static int i = 0;
-        timer->start(100 / (mineGrid->gridSize));
 
-        mineGrid->revealOneTile();
+        mineGrid->revealOneGreenTile();
 
         i++;
         if(i > mineGrid->gridSize * mineGrid->gridSize)
         {
+            enableButtons();
+
             timer->stop();
             i = 0;
 
@@ -174,6 +206,8 @@ void MainWindow::initGrid()
 {
     qDebug() << Q_FUNC_INFO;
 
+    status = Idle;
+
     //get size (of one side) from combo box
     int gridSize = ui->bxSizes->currentText().split("x")[0].toInt();
 
@@ -205,10 +239,31 @@ void MainWindow::initGrid()
             this, SLOT(victory()));
     connect(mineGrid, SIGNAL(defeat()),
             this, SLOT(defeat()));
+    connect(mineGrid, SIGNAL(skipToEnd()),
+            this, SLOT(skipEndSequence()));
 
     //adjust screen size
     float screenH = QGuiApplication::primaryScreen()->geometry().height();
     int rectangle = (screenH * 0.8) / (32 / (float)gridSize);
 
     this->resize(rectangle, rectangle);
+
+    //update ui
+    updateCounters(0);
+
+    //reset timers
+    timer->stop();
+    centiseconds = 0;
+}
+
+void MainWindow::disableButtons()
+{
+    ui->bxSizes->setDisabled(true);
+    ui->leMines->setDisabled(true);
+}
+
+void MainWindow::enableButtons()
+{
+    ui->bxSizes->setDisabled(false);
+    ui->leMines->setDisabled(false);
 }

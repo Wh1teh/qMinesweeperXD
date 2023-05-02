@@ -32,15 +32,15 @@ private slots:
     void victory();
     void defeat();
 
+    void skipEndSequence();
+
     void mineFluff();
     void updateClock();
 
     //generated
-    void on_bxSizes_editTextChanged(const QString &arg1);
-
     void on_bxSizes_currentIndexChanged(int index);
 
-
+    void on_leMines_textEdited(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
@@ -51,8 +51,9 @@ private:
 
     QTimer * smallDelay;
     QTimer * timer;
+    float delay = 1000.0;
 
-    //states
+    //flags
     enum Status {
         Idle,
         Running,
@@ -62,5 +63,9 @@ private:
 
     //variables
     int centiseconds = 0;
+
+    //functions
+    void disableButtons();
+    void enableButtons();
 };
 #endif // MAINWINDOW_H
