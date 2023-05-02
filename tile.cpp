@@ -64,7 +64,7 @@ void Tile::updateText()
         return;
     }
 
-    setFlat(true);
+    //setFlat(true);
 
     QString clr;
     switch (adjNum) {
@@ -107,7 +107,14 @@ void Tile::updateText()
     default:
         break;
     }
-    setStyleSheet("background-color: #eee; color: " + clr);
+    setStyleSheet("font-weight: bold;"
+                  "font-size: 16px;"
+                  "border-top: 1px solid #DDD;"
+                  "border-left: 1px solid #DDD;"
+                  "border-bottom: 1px solid #FFF;"
+                  "border-right: 1px solid #FFF;"
+                  "background-color: #EEE;"
+                  "color: " + clr);
 
     if(adjNum > 0)
         setText(QString::number(adjNum));
