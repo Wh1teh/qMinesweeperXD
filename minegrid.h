@@ -74,6 +74,8 @@ private:
 
     void revealTile(int x, int y);
     void floodFill(int x, int y);
+
+    void revealAround(Tile*);
 };
 
 #endif // MINEGRID_H

@@ -312,10 +312,13 @@ void MineGrid::createButtons()
 
 void MineGrid::revealTile(int x, int y)
 {
+    qDebug() << Q_FUNC_INFO;
+
     Tile * tile = tiles[y][x];
 
     if(tile->hasFlag)
     {
+        return;
         flagsAmount--;
         emit gridUpdated(flagsAmount);
     }
@@ -345,6 +348,10 @@ void MineGrid::revealTile(int x, int y)
         qDebug() << Q_FUNC_INFO << "tilesRevealed:" << tilesRevealed;
 
         floodFill(x, y);
+    }
+    else
+    {
+        revealAround(tile);
     }
 
     //game is won
@@ -380,6 +387,30 @@ void MineGrid::floodFill(int x, int y)
                     }
                 }
             }
+        }
+    }
+}
+
+void MineGrid::revealAround(Tile * tile)
+{
+    qDebug() << Q_FUNC_INFO;
+
+    int row = tile->coords[0];
+    int col = tile->coords[1];
+    for (int i = row - 1; i < row + 2; ++i) {
+        //prevent invalid index
+        if(i < 0 || i >= gridSize) continue;
+
+        for (int j = col - 1; j < col + 2; ++j) {
+            //prevent invalid index
+            if(j < 0 || j >= gridSize) continue;
+
+            if(tiles[i][j]->revealed == false)
+            {
+                qDebug() << Q_FUNC_INFO << "revealing x,y" << tile->coords[1] <<  tile->coords[0];
+                revealTile(j, i);
+            }
+
         }
     }
 }
