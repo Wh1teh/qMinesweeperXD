@@ -129,6 +129,54 @@ void MineGrid::buttonRightClicked()
     emit gridUpdated(flagsAmount);
 }
 
+void MineGrid::buttonHovered()
+{
+    //qDebug() << Q_FUNC_INFO << QObject::sender();
+    if(!crosshair)
+        return;
+
+    Tile * tile = qobject_cast<Tile*>(QObject::sender());
+
+    int row = tile->coords[0];
+    int col = tile->coords[1];
+    for (int i = row - 1; i < row + 2; ++i) {
+        //prevent invalid index
+        if(i < 0 || i >= gridSize) continue;
+
+        for (int j = col - 1; j < col + 2; ++j) {
+            //prevent invalid index
+            if(j < 0 || j >= gridSize) continue;
+
+            tiles[i][j]->inCrosshair = true;
+            tiles[i][j]->updateText();
+        }
+    }
+}
+
+void MineGrid::buttonUnhovered() //maybe unite with hover slot
+{
+    //qDebug() << Q_FUNC_INFO << QObject::sender();
+    if(!crosshair)
+        return;
+
+    Tile * tile = qobject_cast<Tile*>(QObject::sender());
+
+    int row = tile->coords[0];
+    int col = tile->coords[1];
+    for (int i = row - 1; i < row + 2; ++i) {
+        //prevent invalid index
+        if(i < 0 || i >= gridSize) continue;
+
+        for (int j = col - 1; j < col + 2; ++j) {
+            //prevent invalid index
+            if(j < 0 || j >= gridSize) continue;
+
+            tiles[i][j]->inCrosshair = false;
+            tiles[i][j]->updateText();
+        }
+    }
+}
+
 void MineGrid::debugGrid()
 {
     //debug
@@ -236,6 +284,11 @@ void MineGrid::createButtons()
 
             connect(row[j], SIGNAL(skipToEnd()),
                     this, SIGNAL(skipToEnd()));
+
+            connect(row[j], SIGNAL(tileHovered()),
+                    this, SLOT(buttonHovered()));
+            connect(row[j], SIGNAL(tileUnhovered()),
+                    this, SLOT(buttonUnhovered()));
         }
         tiles.append(row);
 

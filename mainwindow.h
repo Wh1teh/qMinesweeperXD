@@ -42,6 +42,8 @@ private slots:
 
     void on_leMines_textEdited(const QString &arg1);
 
+    void on_checkBox_stateChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
 

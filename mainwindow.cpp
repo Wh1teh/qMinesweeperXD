@@ -226,6 +226,10 @@ void MainWindow::initGrid()
 
     ui->layoutWrapper->addWidget(mineGrid);
 
+    if(ui->checkBox->checkState() == 0)
+        mineGrid->crosshair = false;
+    else
+        mineGrid->crosshair = true;
     mineGrid->createGrid(gridSize, minesAmount);
 
     mineGrid->show();
@@ -268,3 +272,19 @@ void MainWindow::enableButtons()
     ui->bxSizes->setDisabled(false);
     ui->leMines->setDisabled(false);
 }
+
+void MainWindow::on_checkBox_stateChanged(int arg1)
+{
+    if(mineGrid != nullptr)
+    {
+        if(arg1 == 0)
+        {
+            mineGrid->crosshair = false;
+        }
+        else
+        {
+            mineGrid->crosshair = true;
+        }
+    }
+}
+

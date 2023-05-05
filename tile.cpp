@@ -3,7 +3,7 @@
 Tile::Tile(QWidget* parent)
     : QPushButton{parent}
 {
-
+    setAttribute(Qt::WA_Hover);
 }
 
 void Tile::mousePressEvent(QMouseEvent *e)
@@ -29,6 +29,18 @@ void Tile::mousePressEvent(QMouseEvent *e)
     }
 }
 
+void Tile::enterEvent(QEnterEvent *e)
+{
+    Q_UNUSED(e)
+    emit tileHovered();
+}
+
+void Tile::leaveEvent(QEvent *e)
+{
+    Q_UNUSED(e)
+    emit tileUnhovered();
+}
+
 void Tile::revealTile()
 {
     qDebug() << Q_FUNC_INFO;
@@ -44,9 +56,16 @@ void Tile::updateText()
 
     setText("");
 
+    QString style;
+    if(inCrosshair)
+    {
+        style.append("border: 1px solid #F00;");
+    }
+
     if(!revealed)
     {
-        setStyleSheet("background-color: #CCC; color: #F00");
+        style.append("background-color: #CCC; color: #F00;");
+        setStyleSheet(style);
 
         if(hasFlag)
         {
@@ -58,7 +77,8 @@ void Tile::updateText()
 
     if(hasMine)
     {
-        setStyleSheet("background-color: #F00; color: #000;");
+        style.append("background-color: #F00; color: #000;");
+        setStyleSheet(style);
         setText("💣");
 
         return;
@@ -107,14 +127,21 @@ void Tile::updateText()
     default:
         break;
     }
-    setStyleSheet("font-weight: bold;"
+    style.append("font-weight: bold;"
                   "font-size: 16px;"
-                  "border-top: 1px solid #DDD;"
-                  "border-left: 1px solid #DDD;"
-                  "border-bottom: 1px solid #FFF;"
-                  "border-right: 1px solid #FFF;"
                   "background-color: #EEE;"
-                  "color: " + clr);
+                  "color: " + clr + ";");
+
+    if(!inCrosshair)
+    {
+        style.append("border-top: 1px solid #DDD;"
+                     "border-left: 1px solid #DDD;"
+                     "border-bottom: 1px solid #FFF;"
+                     "border-right: 1px solid #FFF;");
+
+    }
+
+    setStyleSheet(style);
 
     if(adjNum > 0)
         setText(QString::number(adjNum));

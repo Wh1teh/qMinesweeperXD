@@ -22,6 +22,9 @@ public:
     explicit MineGrid(QWidget *parent = nullptr);
     ~MineGrid();
 
+    //flags
+    bool crosshair = false;
+
     int minesAmount = 0;
     int gridSize = 0;
 
@@ -53,6 +56,8 @@ public slots:
 private slots:
     void buttonClicked();
     void buttonRightClicked();
+    void buttonHovered();
+    void buttonUnhovered();
 
 private:
     //flags

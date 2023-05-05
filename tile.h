@@ -3,6 +3,8 @@
 
 #include <QPushButton>
 #include <QMouseEvent>
+#include <QHoverEvent>
+#include <QEvent>
 
 class Tile : public QPushButton
 {
@@ -12,6 +14,8 @@ public:
 
     //overrides
     void mousePressEvent(QMouseEvent *e);
+    void enterEvent(QEnterEvent *e);
+    void leaveEvent(QEvent *e);
 
     //flags
     bool hasMine = false;
@@ -19,10 +23,11 @@ public:
     bool revealed = false;
     bool floodChecked = false;
     bool disabled = false;
+    bool inCrosshair = false;
 
     //data
     int adjNum = 0;
-    int coords[2] = {};
+    int coords[2] = {}; //row, col
 
     //functions
     void revealTile();
@@ -32,7 +37,8 @@ public:
 signals:
     void rightClicked();
     void skipToEnd();
-
+    void tileHovered();
+    void tileUnhovered();
 };
 
 #endif // TILE_H
