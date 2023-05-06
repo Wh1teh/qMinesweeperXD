@@ -29,14 +29,12 @@ public:
     int gridSize = 0;
 
     //pointers
-    //QList<QList<QPushButton*>> buttons;
     QList<QList<Tile*>> tiles;
     QList<Tile*> mines;
 
     //functions
     void createGrid(int gridSize, int minesAmount);
     void freezeButtons();
-
 
 private:
     Ui::MineGrid *ui;
@@ -61,7 +59,6 @@ private slots:
 
 private:
     //flags
-    //bool firstReveal = false;
     int tilesRevealed = 0;
     int flagsAmount = 0;
 
@@ -75,6 +72,7 @@ private:
     void createButtons();
 
     void revealTile(Tile*);
+
     void floodFill(Tile*);
     void floodReveal(Tile*);
 

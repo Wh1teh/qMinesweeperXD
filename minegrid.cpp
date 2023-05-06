@@ -169,6 +169,7 @@ void MineGrid::putMines(Tile * tile)
         ranX = QRandomGenerator::global()->bounded(gridSize);
         ranY = QRandomGenerator::global()->bounded(gridSize);
 
+        //check that mine placement wouldn't be inside clicked region
         if((ranX >= x - 1 && x + 1 >= ranX) && (ranY >= y - 1 && y + 1 >= ranY))
             continue;
 
@@ -252,8 +253,6 @@ void MineGrid::revealTile(Tile * tile)
     if(tile->hasFlag)
     {
         return;
-        flagsAmount--;
-        emit gridUpdated(flagsAmount);
     }
 
     //prevent first click from triggering mine and init adjNums
@@ -261,7 +260,6 @@ void MineGrid::revealTile(Tile * tile)
     {
         putMines(tile);
 
-        //putAdjNums(); //AAAAAAAAAAAAAAAAAAAAAAAAAAA
         iterateGrid(&MineGrid::createAdjNums);
     }
 
@@ -339,8 +337,6 @@ void MineGrid::iterateGrid(void (MineGrid::*tileFunc)(Tile *))
 
 void MineGrid::iterate3x3(Tile * tile, void (MineGrid::*tileFunc)(Tile *))
 {
-    qDebug() << Q_FUNC_INFO;
-
     int row = tile->coords[0];
     int col = tile->coords[1];
     for (int i = row - 1; i < row + 2; ++i)

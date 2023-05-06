@@ -70,7 +70,14 @@ void MainWindow::updateCounters(int flagsAmount)
 
 void MainWindow::victory()
 {
+    //don't do anything if other states have already been triggered
+    if(status != Running) return;
+
     qDebug() << Q_FUNC_INFO;
+
+    //wait for defeat to resolve before victory
+    QThread::msleep(50);
+    if(status == Defeat) return;
 
     status = Victory;
 
