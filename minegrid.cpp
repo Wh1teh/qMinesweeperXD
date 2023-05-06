@@ -89,18 +89,21 @@ void MineGrid::buttonClicked()
 {
     qDebug() << Q_FUNC_INFO << QObject::sender();
 
+    Tile * tile = qobject_cast<Tile*>(QObject::sender());
+
     emit gameStarted();
 
-    for (int i = 0; i < tiles.count(); ++i) {
-        if(tiles[i].contains(QObject::sender()))
-        {
-            qDebug() << Q_FUNC_INFO << "coords(x,y):"
-                     << tiles[i].indexOf(QObject::sender()) << i;
+    revealTile(tile);
+//    for (int i = 0; i < tiles.count(); ++i) {
+//        if(tiles[i].contains(QObject::sender()))
+//        {
+//            qDebug() << Q_FUNC_INFO << "coords(x,y):"
+//                     << tiles[i].indexOf(QObject::sender()) << i;
 
-            revealTile(tiles[i].indexOf(QObject::sender()), i);
-            break;
-        }
-    }
+
+//            break;
+//        }
+//    }
 }
 
 void MineGrid::buttonRightClicked()
@@ -198,11 +201,14 @@ void MineGrid::debugGrid()
     }
 }
 
-void MineGrid::putMines(int x, int y)
+void MineGrid::putMines(Tile * tile)
 {
     qDebug() << Q_FUNC_INFO << "start";
 
     mines.clear();
+
+    int x = tile->coords[1];
+    int y = tile->coords[0];
 
     int ranX = 0;
     int ranY = 0;
@@ -310,11 +316,9 @@ void MineGrid::createButtons()
     qDebug() << Q_FUNC_INFO << "end";
 }
 
-void MineGrid::revealTile(int x, int y)
+void MineGrid::revealTile(Tile * tile)
 {
     qDebug() << Q_FUNC_INFO;
-
-    Tile * tile = tiles[y][x];
 
     if(tile->hasFlag)
     {
@@ -326,7 +330,7 @@ void MineGrid::revealTile(int x, int y)
     //prevent first click from triggering mine and init adjNums
     if(tilesRevealed == 0)
     {
-        putMines(x, y);
+        putMines(tile);
 
         putAdjNums();
     }
@@ -347,7 +351,7 @@ void MineGrid::revealTile(int x, int y)
         tilesRevealed++;
         qDebug() << Q_FUNC_INFO << "tilesRevealed:" << tilesRevealed;
 
-        floodFill(x, y);
+        floodFill(tile);
     }
     else
     {
@@ -359,9 +363,9 @@ void MineGrid::revealTile(int x, int y)
         emit victory();
 }
 
-void MineGrid::floodFill(int x, int y)
+void MineGrid::floodFill(Tile * tile)
 {
-    if(tiles[y][x]->adjNum > 0) tiles[y][x]->floodChecked = true;
+    if(tile->adjNum > 0) tile->floodChecked = true;
 
     for (int row = 0; row < gridSize; ++row) {
         for (int col = 0; col < gridSize; ++col) {
@@ -382,8 +386,8 @@ void MineGrid::floodFill(int x, int y)
                         if(tiles[i][j]->revealed) continue;
 
                         //proceed
-                        tiles[y][x]->floodChecked = true;
-                        revealTile(j, i);
+                        tile->floodChecked = true;
+                        revealTile(tiles[i][j]);
                     }
                 }
             }
@@ -408,7 +412,7 @@ void MineGrid::revealAround(Tile * tile)
             if(tiles[i][j]->revealed == false)
             {
                 qDebug() << Q_FUNC_INFO << "revealing x,y" << tile->coords[1] <<  tile->coords[0];
-                revealTile(j, i);
+                revealTile(tiles[i][j]);
             }
 
         }

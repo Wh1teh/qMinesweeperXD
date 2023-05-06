@@ -68,12 +68,12 @@ private:
     //functions
     void debugGrid();
 
-    void putMines(int x, int y);
+    void putMines(Tile*);
     void putAdjNums();
     void createButtons();
 
-    void revealTile(int x, int y);
-    void floodFill(int x, int y);
+    void revealTile(Tile*);
+    void floodFill(Tile*);
 
     void revealAround(Tile*);
 };
