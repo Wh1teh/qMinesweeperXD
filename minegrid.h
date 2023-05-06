@@ -66,16 +66,22 @@ private:
     int flagsAmount = 0;
 
     //functions
-    void debugGrid();
+    void renderCrosshair(Tile*);
+    void unrenderCrosshair(Tile*);
 
     void putMines(Tile*);
-    void putAdjNums();
+    void createAdjNums(Tile*);
+    void incAdjNum(Tile*);
     void createButtons();
 
     void revealTile(Tile*);
     void floodFill(Tile*);
+    void floodReveal(Tile*);
 
     void revealAround(Tile*);
+
+    void iterateGrid(void(MineGrid::*tileFunc)(Tile*));
+    void iterate3x3(Tile*, void(MineGrid::*tileFunc)(Tile*));
 };
 
 #endif // MINEGRID_H

@@ -20,8 +20,6 @@ void MineGrid::createGrid(int gridSize, int minesAmount)
     this->gridSize = gridSize;
     this->minesAmount = minesAmount;
 
-    //tiles.clear();
-
     createButtons();
 
     qDebug() << Q_FUNC_INFO << "end";
@@ -94,16 +92,6 @@ void MineGrid::buttonClicked()
     emit gameStarted();
 
     revealTile(tile);
-//    for (int i = 0; i < tiles.count(); ++i) {
-//        if(tiles[i].contains(QObject::sender()))
-//        {
-//            qDebug() << Q_FUNC_INFO << "coords(x,y):"
-//                     << tiles[i].indexOf(QObject::sender()) << i;
-
-
-//            break;
-//        }
-//    }
 }
 
 void MineGrid::buttonRightClicked()
@@ -134,76 +122,39 @@ void MineGrid::buttonRightClicked()
 
 void MineGrid::buttonHovered()
 {
-    //qDebug() << Q_FUNC_INFO << QObject::sender();
     if(!crosshair)
         return;
 
     Tile * tile = qobject_cast<Tile*>(QObject::sender());
 
-    int row = tile->coords[0];
-    int col = tile->coords[1];
-    for (int i = row - 1; i < row + 2; ++i) {
-        //prevent invalid index
-        if(i < 0 || i >= gridSize) continue;
-
-        for (int j = col - 1; j < col + 2; ++j) {
-            //prevent invalid index
-            if(j < 0 || j >= gridSize) continue;
-
-            tiles[i][j]->inCrosshair = true;
-            tiles[i][j]->updateText();
-        }
-    }
+    iterate3x3(tile, &MineGrid::renderCrosshair);
 }
 
 void MineGrid::buttonUnhovered() //maybe unite with hover slot
 {
-    //qDebug() << Q_FUNC_INFO << QObject::sender();
     if(!crosshair)
         return;
 
     Tile * tile = qobject_cast<Tile*>(QObject::sender());
 
-    int row = tile->coords[0];
-    int col = tile->coords[1];
-    for (int i = row - 1; i < row + 2; ++i) {
-        //prevent invalid index
-        if(i < 0 || i >= gridSize) continue;
-
-        for (int j = col - 1; j < col + 2; ++j) {
-            //prevent invalid index
-            if(j < 0 || j >= gridSize) continue;
-
-            tiles[i][j]->inCrosshair = false;
-            tiles[i][j]->updateText();
-        }
-    }
+    iterate3x3(tile, &MineGrid::unrenderCrosshair);
 }
 
-void MineGrid::debugGrid()
+void MineGrid::renderCrosshair(Tile * tile)
 {
-    //debug
-    QString huutista;
-    for (int i = 0; i < gridSize; ++i) {
-        huutista.clear();
-        for (int j = 0; j < gridSize; ++j) {
-            if(tiles[i][j]->hasMine) huutista.append("[x]");
-            else if(tiles[i][j]->adjNum > 0)
-            {
-                huutista.append("[");
-                huutista.append(QString::number(tiles[i][j]->adjNum));
-                huutista.append("]");
-            }
+    tile->inCrosshair = true;
+    tile->updateText();
+}
 
-            else huutista.append("[ ]");
-        }
-        qDebug() << huutista;
-    }
+void MineGrid::unrenderCrosshair(Tile * tile)
+{
+    tile->inCrosshair = false;
+    tile->updateText();
 }
 
 void MineGrid::putMines(Tile * tile)
 {
-    qDebug() << Q_FUNC_INFO << "start";
+    qDebug() << Q_FUNC_INFO;
 
     mines.clear();
 
@@ -231,47 +182,27 @@ void MineGrid::putMines(Tile * tile)
             mines.append(tiles[ranY][ranX]);
         }
     }
-
-    //debug
-    debugGrid();
-
-    qDebug() << Q_FUNC_INFO << "end";
 }
 
-void MineGrid::putAdjNums()
+void MineGrid::createAdjNums(Tile * tile)
 {
-    qDebug() << Q_FUNC_INFO << "start";
+    qDebug() << Q_FUNC_INFO;
 
-    for (int row = 0; row < gridSize; ++row) {
-        for (int col = 0; col < gridSize; ++col) {
-
-            //raise adj score around mine
-            if(tiles[row][col]->hasMine)
-            {
-                for (int i = row - 1; i < row + 2; ++i) {
-                    //prevent invalid index
-                    if(i < 0 || i >= gridSize) continue;
-
-                    for (int j = col - 1; j < col + 2; ++j) {
-                        //prevent invalid index
-                        if(j < 0 || j >= gridSize) continue;
-
-                        tiles[i][j]->adjNum = tiles[i][j]->adjNum + 1;
-                    }
-                }
-            }
-        }
+    //raise adj score around mine
+    if(tile->hasMine)
+    {
+        iterate3x3(tile, &MineGrid::incAdjNum);
     }
+}
 
-    //debug
-    debugGrid();
-
-    qDebug() << Q_FUNC_INFO << "end";
+void MineGrid::incAdjNum(Tile * tile)
+{
+    tile->adjNum++;
 }
 
 void MineGrid::createButtons()
 {
-    qDebug() << Q_FUNC_INFO << "start";
+    qDebug() << Q_FUNC_INFO;
 
     tiles.clear();
 
@@ -312,8 +243,6 @@ void MineGrid::createButtons()
             tiles[i][j]->setStyleSheet("background-color: #ccc;");
         }
     }
-
-    qDebug() << Q_FUNC_INFO << "end";
 }
 
 void MineGrid::revealTile(Tile * tile)
@@ -332,7 +261,8 @@ void MineGrid::revealTile(Tile * tile)
     {
         putMines(tile);
 
-        putAdjNums();
+        //putAdjNums(); //AAAAAAAAAAAAAAAAAAAAAAAAAAA
+        iterateGrid(&MineGrid::createAdjNums);
     }
 
     if(tile->hasMine)
@@ -351,11 +281,11 @@ void MineGrid::revealTile(Tile * tile)
         tilesRevealed++;
         qDebug() << Q_FUNC_INFO << "tilesRevealed:" << tilesRevealed;
 
-        floodFill(tile);
+        iterateGrid(&MineGrid::floodFill);
     }
     else
     {
-        revealAround(tile);
+        iterate3x3(tile, &MineGrid::revealAround);
     }
 
     //game is won
@@ -365,56 +295,65 @@ void MineGrid::revealTile(Tile * tile)
 
 void MineGrid::floodFill(Tile * tile)
 {
+    //mark current tile as checked
     if(tile->adjNum > 0) tile->floodChecked = true;
 
-    for (int row = 0; row < gridSize; ++row) {
-        for (int col = 0; col < gridSize; ++col) {
+    //reveal empty adjacent tiles around revealed
+    if(tile->revealed && !tile->floodChecked)
+    {
+        iterate3x3(tile, &MineGrid::floodReveal);
+    }
+}
 
-            //reveal empty adjacent tiles around revealed
-            if(tiles[row][col]->revealed && !tiles[row][col]->floodChecked)
-            {
-                for (int i = row - 1; i < row + 2; ++i) {
-                    //prevent invalid index
-                    if(i < 0 || i >= gridSize) continue;
+void MineGrid::floodReveal(Tile * tile)
+{
+    //skip mines and already revealed
+    if(tile->hasMine) return;
+    if(tile->revealed) return;
 
-                    for (int j = col - 1; j < col + 2; ++j) {
-                        //prevent invalid index
-                        if(j < 0 || j >= gridSize) continue;
+    //proceed
+    revealTile(tile);
+}
 
-                        //skip mines and already revealed
-                        if(tiles[i][j]->hasMine) continue;
-                        if(tiles[i][j]->revealed) continue;
+void MineGrid::revealAround(Tile * tile)
+{
+    if(tile->revealed == false)
+    {
+        qDebug() << Q_FUNC_INFO << "revealing y,x" << tile->coords[0] <<  tile->coords[1];
+        revealTile(tile);
+    }
+}
 
-                        //proceed
-                        tile->floodChecked = true;
-                        revealTile(tiles[i][j]);
-                    }
-                }
-            }
+void MineGrid::iterateGrid(void (MineGrid::*tileFunc)(Tile *))
+{
+    qDebug() << Q_FUNC_INFO;
+
+    for (int row = 0; row < gridSize; ++row)
+    {
+        for (int col = 0; col < gridSize; ++col)
+        {
+            (this->*tileFunc)(tiles[row][col]);
         }
     }
 }
 
-void MineGrid::revealAround(Tile * tile)
+void MineGrid::iterate3x3(Tile * tile, void (MineGrid::*tileFunc)(Tile *))
 {
     qDebug() << Q_FUNC_INFO;
 
     int row = tile->coords[0];
     int col = tile->coords[1];
-    for (int i = row - 1; i < row + 2; ++i) {
+    for (int i = row - 1; i < row + 2; ++i)
+    {
         //prevent invalid index
         if(i < 0 || i >= gridSize) continue;
 
-        for (int j = col - 1; j < col + 2; ++j) {
+        for (int j = col - 1; j < col + 2; ++j)
+        {
             //prevent invalid index
             if(j < 0 || j >= gridSize) continue;
 
-            if(tiles[i][j]->revealed == false)
-            {
-                qDebug() << Q_FUNC_INFO << "revealing x,y" << tile->coords[1] <<  tile->coords[0];
-                revealTile(tiles[i][j]);
-            }
-
+            (this->*tileFunc)(tiles[i][j]);
         }
     }
 }
