@@ -1,6 +1,7 @@
 #ifndef TILE_H
 #define TILE_H
 
+#include <QDebug>
 #include <QPushButton>
 #include <QMouseEvent>
 #include <QHoverEvent>

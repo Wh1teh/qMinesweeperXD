@@ -16,7 +16,7 @@ void Tile::mousePressEvent(QMouseEvent *e)
         return;
     }
 
-    if(e->isInputEvent())
+    if(e->type() == QEvent::MouseButtonPress)
     {
         if(e->button() == Qt::LeftButton)
         {
